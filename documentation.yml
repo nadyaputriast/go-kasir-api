@@ -61,10 +61,10 @@ paths:
               properties:
                 name:
                   type: string
-                  example: Electronics
+                  example: Beverages
                 description:
                   type: string
-                  example: Electronic devices and gadgets
+                  example: Soft drinks, juices, and coffee
       responses:
         '201':
           description: Category created successfully
@@ -96,14 +96,11 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Category'
-        '400':
-          description: Invalid Category ID
         '404':
           description: Category not found
     
     put:
       summary: Update category
-      description: Update an existing category
       tags:
         - Categories
       parameters:
@@ -112,36 +109,18 @@ paths:
           required: true
           schema:
             type: integer
-          description: Category ID
-          example: 1
       requestBody:
         required: true
         content:
           application/json:
             schema:
-              type: object
-              properties:
-                name:
-                  type: string
-                  example: Food & Beverage
-                description:
-                  type: string
-                  example: All food and drink items
+              $ref: '#/components/schemas/Category'
       responses:
         '200':
           description: Category updated successfully
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Category'
-        '400':
-          description: Invalid request
-        '404':
-          description: Category not found
     
     delete:
       summary: Delete category
-      description: Delete a category by ID
       tags:
         - Categories
       parameters:
@@ -150,23 +129,9 @@ paths:
           required: true
           schema:
             type: integer
-          description: Category ID
-          example: 1
       responses:
-        '200':
+        '204':
           description: Category deleted successfully
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  message:
-                    type: string
-                    example: Category deleted successfully
-        '400':
-          description: Invalid Category ID
-        '404':
-          description: Category not found
 
   /api/products:
     get:
@@ -186,7 +151,6 @@ paths:
     
     post:
       summary: Create product
-      description: Create a new product
       tags:
         - Products
       requestBody:
@@ -203,13 +167,13 @@ paths:
               properties:
                 name:
                   type: string
-                  example: Coca Cola 330ml
+                  example: Coca Cola 500ml
                 price:
                   type: number
-                  example: 5000
+                  example: 7500
                 stock:
                   type: integer
-                  example: 100
+                  example: 50
                 category_id:
                   type: integer
                   example: 2
@@ -220,13 +184,10 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Product'
-        '400':
-          description: Invalid request or Category ID not found
 
   /api/products/{id}:
     get:
       summary: Get product by ID
-      description: Retrieve a specific product by ID
       tags:
         - Products
       parameters:
@@ -235,8 +196,6 @@ paths:
           required: true
           schema:
             type: integer
-          description: Product ID
-          example: 1
       responses:
         '200':
           description: Successful response
@@ -244,14 +203,9 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Product'
-        '400':
-          description: Invalid product ID
-        '404':
-          description: Product not found
     
     put:
       summary: Update product
-      description: Update an existing product
       tags:
         - Products
       parameters:
@@ -260,8 +214,6 @@ paths:
           required: true
           schema:
             type: integer
-          description: Product ID
-          example: 1
       requestBody:
         required: true
         content:
@@ -269,33 +221,16 @@ paths:
             schema:
               type: object
               properties:
-                name:
-                  type: string
-                  example: Indomie Goreng Special
-                price:
-                  type: number
-                  example: 4000
-                stock:
-                  type: integer
-                  example: 50
-                category_id:
-                  type: integer
-                  example: 1
+                name: { type: string }
+                price: { type: number }
+                stock: { type: integer }
+                category_id: { type: integer }
       responses:
         '200':
           description: Product updated successfully
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Product'
-        '400':
-          description: Invalid request or Category ID not found
-        '404':
-          description: Product not found
     
     delete:
       summary: Delete product
-      description: Delete a product by ID
       tags:
         - Products
       parameters:
@@ -304,23 +239,9 @@ paths:
           required: true
           schema:
             type: integer
-          description: Product ID
-          example: 1
       responses:
-        '200':
+        '204':
           description: Product deleted successfully
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  message:
-                    type: string
-                    example: Product deleted successfully
-        '400':
-          description: Invalid product ID
-        '404':
-          description: Product not found
 
 components:
   schemas:
@@ -355,6 +276,8 @@ components:
         category_id:
           type: integer
           example: 1
+        category:
+          $ref: '#/components/schemas/Category'
 
 tags:
   - name: Health
