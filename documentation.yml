@@ -1,7 +1,7 @@
 openapi: '3.0.3'
 info:
   title: Kasir API
-  description: Simple POS (Point of Sale) API for managing products and categories
+  description: Simple POS (Point of Sale) API for managing products, categories, and transactions
   version: '1.0'
 servers:
   - url: http://localhost:8080
@@ -32,9 +32,17 @@ paths:
   /api/categories:
     get:
       summary: Get all categories
-      description: Retrieve list of all categories
+      description: Retrieve list of all categories. Supports search by name.
       tags:
         - Categories
+      parameters:
+        - name: name
+          in: query
+          description: Filter categories by name (partial match)
+          required: false
+          schema:
+            type: string
+            example: snack
       responses:
         '200':
           description: Successful response
@@ -136,9 +144,17 @@ paths:
   /api/products:
     get:
       summary: Get all products
-      description: Retrieve list of all products
+      description: Retrieve list of all products. Supports search by name.
       tags:
         - Products
+      parameters:
+        - name: name
+          in: query
+          description: Filter products by name (partial match)
+          required: false
+          schema:
+            type: string
+            example: cola
       responses:
         '200':
           description: Successful response
@@ -243,8 +259,65 @@ paths:
         '204':
           description: Product deleted successfully
 
+  # ===========================
+  # TRANSACTIONS
+  # ===========================
+  /api/checkout:
+    post:
+      summary: Checkout Transaction
+      description: Process a new transaction with multiple items
+      tags:
+        - Transactions
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CheckoutRequest'
+      responses:
+        '200':
+          description: Transaction successful
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Transaction'
+        '500':
+          description: Internal Server Error (Stock insufficient, etc)
+
+  /api/report/sales-summary:
+    get:
+      summary: Get Sales Summary
+      description: Get revenue, total transactions, and best seller item.
+      tags:
+        - Reports
+      parameters:
+        - name: start_date
+          in: query
+          description: Start Date (Format YYYY-MM-DD)
+          required: false
+          schema:
+            type: string
+            format: date
+            example: 2026-01-01
+        - name: end_date
+          in: query
+          description: End Date (Format YYYY-MM-DD)
+          required: false
+          schema:
+            type: string
+            format: date
+            example: 2026-02-01
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SalesSummary'
+
 components:
   schemas:
+    # --- Category Schemas ---
     Category:
       type: object
       properties:
@@ -258,6 +331,7 @@ components:
           type: string
           example: Snack and Meals
     
+    # --- Product Schemas ---
     Product:
       type: object
       properties:
@@ -279,6 +353,73 @@ components:
         category:
           $ref: '#/components/schemas/Category'
 
+    # --- Transaction Schemas ---
+    CheckoutRequest:
+      type: object
+      properties:
+        items:
+          type: array
+          items:
+            type: object
+            properties:
+              product_id:
+                type: integer
+                example: 2
+              quantity:
+                type: integer
+                example: 5
+
+    Transaction:
+      type: object
+      properties:
+        id:
+          type: integer
+          example: 101
+        total_amount:
+          type: integer
+          example: 50000
+        created_at:
+          type: string
+          format: date-time
+        details:
+          type: array
+          items:
+            $ref: '#/components/schemas/TransactionDetail'
+
+    TransactionDetail:
+      type: object
+      properties:
+        id:
+          type: integer
+        product_id:
+          type: integer
+        product_name:
+          type: string
+        quantity:
+          type: integer
+        subtotal:
+          type: integer
+
+    # --- Report Schemas ---
+    SalesSummary:
+      type: object
+      properties:
+        total_revenue:
+          type: integer
+          example: 150000
+        total_transactions:
+          type: integer
+          example: 12
+        best_seller:
+          type: object
+          properties:
+            name:
+              type: string
+              example: "Indomie Goreng"
+            qty_sold:
+              type: integer
+              example: 50
+
 tags:
   - name: Health
     description: Health check endpoints
@@ -286,3 +427,7 @@ tags:
     description: Category management
   - name: Products
     description: Product management
+  - name: Transactions
+    description: Checkout and Order processing
+  - name: Reports
+    description: Sales analytics

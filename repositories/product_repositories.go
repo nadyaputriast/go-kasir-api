@@ -14,14 +14,21 @@ func NewProductRepository(db *sql.DB) *ProductRepository {
 	return &ProductRepository{db: db}
 }
 
-func (repo *ProductRepository) GetAll() ([]models.Product, error) {
+func (repo *ProductRepository) GetAll(name string) ([]models.Product, error) {
 	query := `
 		SELECT products.id, products.name, products.price, products.stock, products.category_id, 
 		       COALESCE(categories.name, ''), COALESCE(categories.description, '')
 		FROM products
 		LEFT JOIN categories ON products.category_id = categories.id`
 
-	rows, err := repo.db.Query(query)
+	args := []interface{}{}
+
+	if name != "" {
+		query += " WHERE products.name ILIKE $1"
+		args = append(args, "%"+name+"%")
+	}
+
+	rows, err := repo.db.Query(query, args...)
 	if err != nil {
 		return nil, err
 	}
@@ -47,7 +54,7 @@ func (repo *ProductRepository) GetAll() ([]models.Product, error) {
 func (repo *ProductRepository) GetByID(id int) (*models.Product, error) {
 	query := `
 		SELECT products.id, products.name, products.price, products.stock, products.category_id, 
-		       COALESCE(categories.name, ''), COALESCE(categories.description, '')
+			   COALESCE(categories.name, ''), COALESCE(categories.description, '')
 		FROM products
 		LEFT JOIN categories ON products.category_id = categories.id
 		WHERE products.id = $1`
@@ -57,11 +64,10 @@ func (repo *ProductRepository) GetByID(id int) (*models.Product, error) {
 		&p.ID, &p.Name, &p.Price, &p.Stock, &p.CategoryId,
 		&p.Category.Name, &p.Category.Description,
 	)
-
-	if err == sql.ErrNoRows {
-		return nil, errors.New("product not found")
-	}
 	if err != nil {
+		if err == sql.ErrNoRows {
+			return nil, errors.New("product not found")
+		}
 		return nil, err
 	}
 
